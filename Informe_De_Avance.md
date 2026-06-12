@@ -1,4 +1,4 @@
-<p align="center">
+<p align="left">
   <img src="logo_fiuba.png" alt="Logo FIUBA" width="35%">
 </p>
 
