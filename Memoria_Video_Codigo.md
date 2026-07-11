@@ -84,7 +84,7 @@ El comportamiento esperado del sistema se estructuró a través de los siguiente
 # Arquitectura General y Diseño de Hardware
 
 ### 2.1 Diagrama en bloques
-![Diagrama de bloques](img/diagrama_bloques.png)
+![Diagrama de bloques](/diagrama_en_bloques.png)
 
 El sistema se estructura en torno al microcontrolador principal, el cual recibe estímulos físicos provenientes de la interfaz de usuario (cuatro pulsadores del teclado matricial) y los sensores analógicos (consumo de motores y proximidad). A partir del procesamiento en tiempo real de estas señales, el sistema actualiza la interfaz visual (Display LCD) y controla la potencia entregada a los motores, representados mediante diodos LED de intensidad variable.
 
