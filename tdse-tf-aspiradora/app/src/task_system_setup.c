@@ -1,15 +1,32 @@
+/*
+ * Copyright (c) 2026 Juan Manuel Cruz <jcruz@fi.uba.ar> <jcruz@frba.utn.edu.ar>.
+ * All rights reserved.
+ *
+ *
+ */
+
+/********************** inclusions *******************************************/
 #include <stdio.h>
+#include <task_pwm.h>
 #include "task_system_setup.h"
 #include "task_system_interface.h"
 #include "task_display_interface.h"
 
+/********************** macros and definitions *******************************/
+
+/********************** internal data declaration ****************************/
+
+/********************** external functions definition ************************/
+
 void task_system_setup_statechart(task_system_dta_t *p_task_system_dta)
 {
+    /* Indica qué parámetro del menú estamos recorriendo (0=modo, 1=potencia, 2=tiempo) */
     static uint32_t menu_param = 0;
     static uint8_t  val_modo   = 0;
     static uint8_t  val_potencia = 0;
     static uint8_t  val_tiempo = 10;
 
+    /* Buffer auxiliar para armar los textos que se muestran en el display */
     char lcd_buffer[17];
 
     if (true == any_event_task_system())
@@ -32,6 +49,7 @@ void task_system_setup_statechart(task_system_dta_t *p_task_system_dta)
             {
                 if (EV_SYS_ENTER == p_task_system_dta->event)
                 {
+                    /* Entramos al primer menú y arrancamos mostrando el parámetro "MODO" */
                     p_task_system_dta->state = ST_SYS_MENU_1;
                     put_event_task_display(0, 0, "MENU 1: PARAM   ");
                     put_event_task_display(0, 1, "> MODO          ");
@@ -42,6 +60,7 @@ void task_system_setup_statechart(task_system_dta_t *p_task_system_dta)
                 {
                     put_event_task_display(0, 0, "MODO NORMAL     ");
                     put_event_task_display(0, 1, "ENTER: EMPEZAR  ");
+
 
                     /* RESET ON EXIT: Aseguramos que arranque bien la próxima */
                     p_task_system_dta->state = ST_SYS_IDLE;
@@ -63,6 +82,7 @@ void task_system_setup_statechart(task_system_dta_t *p_task_system_dta)
                 }
                 else if (EV_SYS_NEXT == p_task_system_dta->event)
                 {
+                    /* Avanzamos al siguiente parámetro del menú (circular entre los 3) */
                     menu_param = (menu_param + 1) % 3;
                     if (0 == menu_param) put_event_task_display(0, 1, "> MODO          ");
                     else if (1 == menu_param) put_event_task_display(0, 1, "> POTENCIA      ");
@@ -70,9 +90,11 @@ void task_system_setup_statechart(task_system_dta_t *p_task_system_dta)
                 }
                 else if (EV_SYS_ENTER == p_task_system_dta->event)
                 {
+                    /* Entramos a editar el valor del parámetro seleccionado */
                     p_task_system_dta->state = ST_SYS_MENU_2;
                     put_event_task_display(0, 0, "MENU 2: EDITAR  ");
 
+                    /* Mostramos el valor actual según qué parámetro estamos editando */
                     if (0 == menu_param) snprintf(lcd_buffer, sizeof(lcd_buffer), "VAL: %s", (val_modo == 0) ? "MANUAL" : "AUTO");
                     else if (1 == menu_param) snprintf(lcd_buffer, sizeof(lcd_buffer), "VAL: %s", (val_potencia == 0) ? "BAJA" : (val_potencia == 1) ? "MEDIA" : "ALTA");
                     else snprintf(lcd_buffer, sizeof(lcd_buffer), "VAL: %d MIN", val_tiempo);
@@ -81,6 +103,7 @@ void task_system_setup_statechart(task_system_dta_t *p_task_system_dta)
                 }
                 else if (EV_SYS_ESCAPE == p_task_system_dta->event)
                 {
+                    /* Volvemos al menú principal sin cambiar nada */
                     p_task_system_dta->state = ST_SYS_MAIN;
                     put_event_task_display(0, 0, "ASPIRADORA SETUP");
                     put_event_task_display(0, 1, "ENTER TO NAVIG. ");
@@ -101,6 +124,7 @@ void task_system_setup_statechart(task_system_dta_t *p_task_system_dta)
                 }
                 else if (EV_SYS_NEXT == p_task_system_dta->event)
                 {
+                    /* Vamos rotando el valor del parámetro que estamos editando */
                     if (0 == menu_param){
                         val_modo = !val_modo;
                         snprintf(lcd_buffer, sizeof(lcd_buffer), "VAL: %s", (val_modo == 0) ? "MANUAL" : "AUTO");
@@ -117,6 +141,7 @@ void task_system_setup_statechart(task_system_dta_t *p_task_system_dta)
                 }
                 else if (EV_SYS_ENTER == p_task_system_dta->event)
                 {
+                    /* Confirmamos el valor (queda guardado en la variable estática) y volvemos al Menú 1 */
                     p_task_system_dta->state = ST_SYS_MENU_1;
                     put_event_task_display(0, 0, "MENU 1: PARAM   ");
                     if (0 == menu_param) put_event_task_display(0, 1, "> MODO (SAVED)  ");
@@ -125,6 +150,7 @@ void task_system_setup_statechart(task_system_dta_t *p_task_system_dta)
                 }
                 else if (EV_SYS_ESCAPE == p_task_system_dta->event)
                 {
+                    /* Cancelamos la edición sin guardar y volvemos al Menú 1 */
                     p_task_system_dta->state = ST_SYS_MENU_1;
                     put_event_task_display(0, 0, "MENU 1: PARAM   ");
                     if (0 == menu_param) put_event_task_display(0, 1, "> MODO          ");
@@ -138,3 +164,5 @@ void task_system_setup_statechart(task_system_dta_t *p_task_system_dta)
     }
     p_task_system_dta->flag = false;
 }
+
+/********************** end of file ******************************************/

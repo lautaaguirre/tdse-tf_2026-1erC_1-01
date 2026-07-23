@@ -1,3 +1,4 @@
+#include <task_pwm.h>
 #include "task_system_falla.h"
 #include "task_system_interface.h"
 #include "task_actuator_interface.h"
@@ -41,6 +42,8 @@ void task_system_falla_statechart(task_system_dta_t *p_task_system_dta)
 
                     /* Transferimos control de vuelta a Normal (en reposo) */
                     task_system_set_mode(NORMAL);
+                } else {
+                	buzzer_play_finish_melody();
                 }
             }
             break;

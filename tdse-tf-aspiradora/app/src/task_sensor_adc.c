@@ -1,9 +1,22 @@
+/*
+ * Copyright (c) 2026 Juan Manuel Cruz <jcruz@fi.uba.ar> <jcruz@frba.utn.edu.ar>.
+ * All rights reserved.
+ *
+ *
+ */
+
+/********************** inclusions *******************************************/
 #include "task_sensor_adc.h"
 #include "task_system_interface.h"
 
+/********************** macros and definitions *******************************/
+
+/********************** internal data declaration ****************************/
 /* Banderas compartidas con la interrupción (Hardware) */
 static volatile bool     g_adc_it_flag = false;
 static volatile uint32_t g_adc_raw_val = 0;
+
+/********************** external functions definition ************************/
 
 /* Callback disparado desde app_it.c cuando el HW termina de medir */
 void task_sensor_adc_it_callback(uint32_t raw_value)
@@ -57,3 +70,5 @@ void task_sensor_adc_statechart(const task_sensor_adc_cfg_t *p_cfg, task_sensor_
             break;
     }
 }
+
+/********************** end of file ******************************************/

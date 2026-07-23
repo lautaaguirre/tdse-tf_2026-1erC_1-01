@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2026 Juan Manuel Cruz <jcruz@fi.uba.ar> <jcruz@frba.utn.edu.ar>.
+ * All rights reserved.
+ *
+ *
+ */
+
+/********************** inclusions *******************************************/
 #include "main.h"
 #include "logger.h"
 #include "board.h"
@@ -6,7 +14,10 @@
 #include "task_sensor_adc.h"
 #include "task_system_attribute.h"
 
+/********************** macros and definitions *******************************/
 #define DEL_BTN_MAX  50ul  /* 50 ms de antirrebote */
+
+/********************** internal data declaration ****************************/
 
 /* 1. MAPEO FÍSICO DE BOTONES
  * Se corrige la nomenclatura del array para utilizar estrictamente las abstracciones
@@ -20,6 +31,7 @@ const task_sensor_btn_cfg_t sensor_btn_cfg_list[SENSOR_BTN_QTY] = {
     {ID_BTN_ESC, BTN_ESC_PORT, BTN_ESC_PIN, BTN_ESC_PRESSED, DEL_BTN_MAX, EV_SYS_IDLE, EV_SYS_ESCAPE},
     {ID_BTN_SET, BTN_SET_PORT, BTN_SET_PIN, BTN_SET_PRESSED, DEL_BTN_MAX, EV_SYS_IDLE, EV_SYS_SETUP_BTN}
 };
+/* Vector con el estado (RAM) de cada botón, en paralelo con la config de arriba */
 static task_sensor_btn_dta_t sensor_btn_dta_list[SENSOR_BTN_QTY];
 
 /* 2. MAPEO FÍSICO DE SENSORES ANALÓGICOS
@@ -33,16 +45,23 @@ const task_sensor_adc_cfg_t sensor_adc_cfg_list[SENSOR_ADC_QTY] = {
     {&hadc1, 2048, 100, EV_SYS_FAULT_STALL},       // Potenciómetro: Chequea consumo c/ 100ms
     {&hadc2, 1500,  50, EV_SYS_SENSOR_OBSTACLE}    // Sharp IR: Chequea pared c/ 50ms
 };
+/* Vector con el estado (RAM) de cada canal ADC, en paralelo con la config de arriba */
 static task_sensor_adc_dta_t sensor_adc_dta_list[SENSOR_ADC_QTY];
+
+/********************** external functions definition ************************/
 
 void task_sensor_init(void *parameters)
 {
     uint32_t i;
+
+    /* Dejamos todos los botones arrancando en estado "soltado" */
     for (i = 0; i < SENSOR_BTN_QTY; i++) {
         sensor_btn_dta_list[i].state = ST_BTN_UP;
         sensor_btn_dta_list[i].event = EV_BTN_UP;
         sensor_btn_dta_list[i].tick  = 0;
     }
+
+    /* Dejamos todos los canales ADC arrancando en reposo, sin lectura pendiente */
     for (i = 0; i < SENSOR_ADC_QTY; i++) {
         sensor_adc_dta_list[i].state = ST_ADC_IDLE;
         sensor_adc_dta_list[i].tick  = 0;
@@ -54,10 +73,16 @@ void task_sensor_init(void *parameters)
 void task_sensor_update(void *parameters)
 {
     uint32_t i;
+
+    /* Actualizamos la máquina de estados de cada botón */
     for (i = 0; i < SENSOR_BTN_QTY; i++) {
         task_sensor_button_statechart(&sensor_btn_cfg_list[i], &sensor_btn_dta_list[i]);
     }
+
+    /* Actualizamos la máquina de estados de cada canal ADC */
     for (i = 0; i < SENSOR_ADC_QTY; i++) {
         task_sensor_adc_statechart(&sensor_adc_cfg_list[i], &sensor_adc_dta_list[i]);
     }
 }
+
+/********************** end of file ******************************************/

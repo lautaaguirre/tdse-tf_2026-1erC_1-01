@@ -17,6 +17,11 @@ extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
 
 /********************** internal data declaration ****************************/
+/*
+ * Config de cada motor: qué timer/canal usa y los valores de PWM para
+ * adelante (fwd), atrás (rev), giro (spin) y detenido (stop).
+ * Hay 4 entradas: motor izquierdo (adelante/atrás) y motor derecho (adelante/atrás).
+ */
 const task_actuator_cfg_t task_actuator_cfg_list[] = {
     {ID_MOT_L_FWD,   &htim3,  TIM_CHANNEL_1, 800,   0,  500,    0},
     {ID_MOT_L_REV,   &htim3,  TIM_CHANNEL_3,   0, 500,    0,    0},
@@ -24,6 +29,7 @@ const task_actuator_cfg_t task_actuator_cfg_list[] = {
     {ID_MOT_R_REV,   &htim4,  TIM_CHANNEL_2,   0, 500,  500,    0}
 };
 
+/* Estado (RAM) de cada actuador, en paralelo con la config de arriba */
 task_actuator_dta_t task_actuator_dta_list[ACTUATOR_DTA_QTY];
 
 /********************** internal functions declaration ***********************/
@@ -42,6 +48,7 @@ void task_actuator_init(void *parameters)
     LOGGER_INFO(" ");
     LOGGER_INFO("  %s is running - Tick [mS] = %lu", GET_NAME(task_actuator_init), HAL_GetTick());
 
+    /* Arrancamos todos los actuadores frenados y el PWM en 0 */
     for (index = 0; ACTUATOR_DTA_QTY > index; index++)
     {
         task_actuator_dta_list[index].state = ST_ACT_STOPPED;
@@ -67,12 +74,19 @@ void task_actuator_init(void *parameters)
 void task_actuator_update(void *parameters)
 {
     uint32_t index;
+
+    /* Actualizamos la máquina de estados de cada uno de los 4 actuadores */
     for (index = 0; ACTUATOR_DTA_QTY > index; index++)
     {
         task_actuator_statechart(index);
     }
 }
 
+/*
+ * Máquina de estados de un actuador individual. Los 4 estados (STOPPED,
+ * MOVING_FWD, MOVING_REV, SPINNING) reaccionan al mismo conjunto de eventos
+ * y básicamente actualizan el PWM del timer según hacia dónde hay que moverse.
+ */
 void task_actuator_statechart(uint32_t index)
 {
     const task_actuator_cfg_t *p_cfg = &task_actuator_cfg_list[index];
@@ -160,3 +174,5 @@ void task_actuator_statechart(uint32_t index)
     /* Limpieza estricta de la bandera al final del ciclo */
     p_dta->flag = false;
 }
+
+/********************** end of file ******************************************/
