@@ -1,0 +1,4 @@
+# Ocultar librerias autogeneradas de STM32 en los Pull Requests
+*hal*.c linguist-generated
+*hal*.h linguist-generated
+Drivers/** linguist-generated
